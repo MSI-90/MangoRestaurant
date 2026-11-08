@@ -1,10 +1,16 @@
 ﻿using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using Mango.Services.ProductAPI.Application__BLL_.Models;
+
 using Mango.Services.ProductAPI.Shared.DTO;
 
 namespace Mango.Services.ProductAPI.API__PL_.Controllers
 {
+  //TODO: выкинуть паттерн Result (ResponseDto) и использовать IActionResult
+  //TODO: Внедрить IExceptionHandlerMiddleware для глобальной обработки ошибок
+  //TODO: Внедрить FluentValidation для валидации входных данных, здесь подумать о целесообразности ибо можно обойтись родными DataAnnotations
+  //TODO: Exceptions для IExecptionHandlerMiddleware, например NotFoundException и т.д.
+  //TODO: Для изображений товаров - облако (здесь подумать что использовать, локально или глобально)
+
   [Route("api/products")]
   [ApiController]
   public class ProductController : ControllerBase
