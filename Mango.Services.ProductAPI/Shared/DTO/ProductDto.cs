@@ -1,6 +1,6 @@
 ﻿namespace Mango.Services.ProductAPI.Shared.DTO
 {
-  public class ProductDto
+  public record ProductDto
   {
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; set; }

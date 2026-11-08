@@ -1,9 +1,7 @@
 ﻿using Mango.Services.ProductAPI.Application__BLL_.Contracts;
-using Mango.Services.ProductAPI.Application__BLL_.Models;
 using Mango.Services.ProductAPI.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
-using ServiceProduct = Mango.Services.ProductAPI.Application__BLL_.Models.Product;
 using EntityProduct = Mango.Services.ProductAPI.Data.Entities.Product;
 using Mango.Services.ProductAPI.Shared.DTO;
 
