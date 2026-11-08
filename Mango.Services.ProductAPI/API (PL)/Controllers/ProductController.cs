@@ -1,7 +1,7 @@
-﻿using Mango.Services.ProductAPI.API__PL_.DTO;
-using Mango.Services.ProductAPI.Application__BLL_.Contracts;
+﻿using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Mango.Services.ProductAPI.Application__BLL_.Models;
+using Mango.Services.ProductAPI.Shared.DTO;
 
 namespace Mango.Services.ProductAPI.API__PL_.Controllers
 {
@@ -55,14 +55,7 @@ namespace Mango.Services.ProductAPI.API__PL_.Controllers
     {
       try
       {
-        var newProduct = await _productService.CreateProductAsync(new Product
-        {
-          Name = product.Name,
-          Price = product.Price,
-          Description = product.Description,
-          CategoryName = product.CategoryName,
-          ImageUrl = product.ImageUrl
-        });
+        var newProduct = await _productService.CreateProductAsync(product);
         _response.Result = newProduct;
       }
       catch (Exception ex)
@@ -74,7 +67,7 @@ namespace Mango.Services.ProductAPI.API__PL_.Controllers
     }
 
     [HttpPut]
-    public async Task<ResponseDto> UpdateProductAsyc([FromBody] Product product)
+    public async Task<ResponseDto> UpdateProductAsyc([FromBody] ProductForUpdateDto product)
     {
       try
       {

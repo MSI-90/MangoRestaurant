@@ -1,5 +1,3 @@
-using AutoMapper;
-using Mango.Services.ProductAPI.API__PL_.Mappers;
 using Mango.Services.ProductAPI.Application__BLL_;
 using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Mango.Services.ProductAPI.Data.DbContexts;
@@ -21,8 +19,6 @@ namespace Mango.Services.ProductAPI
 
       builder.Services.AddDbContext<ApplicationDbContext>(options =>
           options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-      builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly);
 
       builder.Services.AddScoped<IProductService, ProductService>();
 

@@ -1,37 +1,50 @@
-﻿using AutoMapper;
-using Mango.Services.ProductAPI.Application__BLL_.Contracts;
+﻿using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Mango.Services.ProductAPI.Application__BLL_.Models;
 using Mango.Services.ProductAPI.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
 using ServiceProduct = Mango.Services.ProductAPI.Application__BLL_.Models.Product;
 using EntityProduct = Mango.Services.ProductAPI.Data.Entities.Product;
+using Mango.Services.ProductAPI.Shared.DTO;
 
 namespace Mango.Services.ProductAPI.Application__BLL_
 {
   public class ProductService : IProductService
   {
     private readonly ApplicationDbContext _context;
-    private readonly IMapper _mapper;
-    public ProductService(ApplicationDbContext context, IMapper mapper)
+    public ProductService(ApplicationDbContext context)
     {
       _context = context;
-      _mapper = mapper;
     }
-    public async Task<Guid> CreateProductAsync(Product product)
+    public async Task<Guid> CreateProductAsync(ProductDto product)
     {
-      var newProduct = _mapper.Map<EntityProduct>(product) ?? throw new ArgumentNullException(nameof(product));
-
-      newProduct.ProductId = Guid.NewGuid();
+      var newProduct = new EntityProduct
+      {
+        ProductId = Guid.NewGuid(),
+        Name = product.Name,
+        Price = product.Price,
+        Description = product.Description,
+        CategoryName = product.CategoryName,
+        ImageUrl = product.ImageUrl
+      };
+      
       var result = await _context.Products.AddAsync(newProduct);
       _context.SaveChanges();
       return result.Entity.ProductId;
     }
 
-    public async Task<ServiceProduct> UpdateProductAsync(ServiceProduct product)
+    public async Task<ProductOutputDto> UpdateProductAsync(ProductForUpdateDto product)
     {
       var productInDb = await GetProductByIdAsync(product.ProductId) ?? throw new InvalidOperationException("Product not found");
-      var productToUpdate = _mapper.Map<EntityProduct>(productInDb);
+      var productToUpdate = new EntityProduct
+      {
+        CategoryName = product.CategoryName,
+        Description = product.Description,
+        Name = product.Name,
+        ImageUrl = product.ImageUrl,
+        Price = product.Price,
+        ProductId = product.ProductId
+      };
 
       _context.Products.Update(productToUpdate);
       await _context.SaveChangesAsync();
@@ -44,21 +57,47 @@ namespace Mango.Services.ProductAPI.Application__BLL_
       var product = await GetProductByIdAsync(productId);
       if (product is null) return false;
 
-      _context.Products.Remove(_mapper.Map<EntityProduct>(product));
+      _context.Products.Remove(new EntityProduct
+      {
+        ProductId = product.ProductId,
+        Name = product.Name,
+        Price = product.Price,
+        Description = product.Description,
+        CategoryName = product.CategoryName,
+        ImageUrl = product.ImageUrl
+      });
+
       await _context.SaveChangesAsync();
       return true;
     } 
 
-    public async Task<Product> GetProductByIdAsync(Guid productId)
+    public async Task<ProductOutputDto> GetProductByIdAsync(Guid productId)
     {
       var product = await _context.Products.AsNoTracking().Where(p => p.ProductId == productId).FirstOrDefaultAsync() ?? throw new InvalidOperationException("Product not found");
-      return _mapper.Map<ServiceProduct>(product);
+      return new ProductOutputDto
+      {
+        ProductId = product.ProductId,
+        Name = product.Name,
+        Price = product.Price,
+        Description = product.Description,
+        CategoryName = product.CategoryName,
+        ImageUrl = product.ImageUrl
+      };
     }
 
-    public async Task<IEnumerable<Product>> GetProductsAsync()
+    public async Task<IEnumerable<ProductOutputDto>> GetProductsAsync()
     {
       var products = await _context.Products.AsNoTracking().ToListAsync();
-      return _mapper.Map<IEnumerable<ServiceProduct>>(products);
+
+      return products.Select(p => new ProductOutputDto
+      {
+        ProductId = p.ProductId,
+        Name = p.Name,
+        Price = p.Price,
+        Description = p.Description,
+        CategoryName = p.CategoryName,
+        ImageUrl = p.ImageUrl
+      }) ?? Enumerable.Empty<ProductOutputDto>();
     }
   }
 }
