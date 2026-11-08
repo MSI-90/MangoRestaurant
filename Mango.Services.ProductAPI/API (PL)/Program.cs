@@ -22,7 +22,7 @@ namespace Mango.Services.ProductAPI
       builder.Services.AddDbContext<ApplicationDbContext>(options =>
           options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-      builder.Services.AddAutoMapper(typeof(Program).Assembly);
+      builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly);
 
       builder.Services.AddScoped<IProductService, ProductService>();
 

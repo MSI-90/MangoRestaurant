@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Mango.Services.ProductAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261108073516_InitialDB_and_ProductsTableCreate")]
-    partial class InitialDB_and_ProductsTableCreate
+    [Migration("20261108141116_Initial_And_ProductTable")]
+    partial class Initial_And_ProductTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace Mango.Services.ProductAPI.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Mango.Services.ProductAPI.Models.Product", b =>
+            modelBuilder.Entity("Mango.Services.ProductAPI.Data.Entities.Product", b =>
                 {
                     b.Property<Guid>("ProductId")
                         .ValueGeneratedOnAdd()
@@ -36,6 +36,7 @@ namespace Mango.Services.ProductAPI.Migrations
                         .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Description")
+                        .HasMaxLength(5000)
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
@@ -51,7 +52,10 @@ namespace Mango.Services.ProductAPI.Migrations
 
                     b.HasKey("ProductId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", t =>
+                        {
+                            t.HasCheckConstraint("CK_Product_Price", "[Price] >= 1 AND [Price] <= 1000000");
+                        });
                 });
 #pragma warning restore 612, 618
         }

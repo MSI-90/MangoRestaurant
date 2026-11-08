@@ -24,34 +24,34 @@ namespace Mango.Services.ProductAPI.Application__BLL_
 
       newProduct.ProductId = Guid.NewGuid();
       var result = await _context.Products.AddAsync(newProduct);
+      _context.SaveChanges();
       return result.Entity.ProductId;
     }
 
     public async Task<ServiceProduct> UpdateProductAsync(ServiceProduct product)
     {
-      var productInDb = await GetProductByIdAsync(product.ProductId);
+      var productInDb = await GetProductByIdAsync(product.ProductId) ?? throw new InvalidOperationException("Product not found");
+      var productToUpdate = _mapper.Map<EntityProduct>(productInDb);
 
-      if (productInDb is null)
-        throw new InvalidOperationException("Product not found");
-
-      _context.Products.UpdateRange(_mapper.Map<EntityProduct>(product));
+      _context.Products.Update(productToUpdate);
       await _context.SaveChangesAsync();
 
       return await GetProductByIdAsync(product.ProductId);
     }
 
-    public async Task DeleteProductByIdAsync(Guid productId)
+    public async Task<bool> DeleteProductByIdAsync(Guid productId)
     {
       var product = await GetProductByIdAsync(productId);
-      if (product is null) return;
+      if (product is null) return false;
 
       _context.Products.Remove(_mapper.Map<EntityProduct>(product));
       await _context.SaveChangesAsync();
+      return true;
     } 
 
     public async Task<Product> GetProductByIdAsync(Guid productId)
     {
-      var product = _context.Products.AsNoTracking().Where(p => p.ProductId == productId).FirstOrDefaultAsync();
+      var product = await _context.Products.AsNoTracking().Where(p => p.ProductId == productId).FirstOrDefaultAsync() ?? throw new InvalidOperationException("Product not found");
       return _mapper.Map<ServiceProduct>(product);
     }
 
