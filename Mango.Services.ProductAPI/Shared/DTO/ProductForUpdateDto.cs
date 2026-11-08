@@ -1,6 +1,6 @@
 ﻿namespace Mango.Services.ProductAPI.Shared.DTO
 {
-  public record ProductForUpdateDto : ProductDto
+  public record ProductForUpdateDto : ProductForCreationDto
   {
     public Guid ProductId { get; set; }
   }

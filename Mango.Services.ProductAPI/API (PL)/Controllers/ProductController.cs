@@ -51,7 +51,7 @@ namespace Mango.Services.ProductAPI.API__PL_.Controllers
     }
 
     [HttpPost]
-    public async Task<ResponseDto> AddProductAsync([FromBody] ProductDto product)
+    public async Task<ResponseDto> AddProductAsync([FromBody] ProductForCreationDto product)
     {
       try
       {

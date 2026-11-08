@@ -14,7 +14,7 @@ namespace Mango.Services.ProductAPI.Application__BLL_
     {
       _context = context;
     }
-    public async Task<Guid> CreateProductAsync(ProductDto product)
+    public async Task<Guid> CreateProductAsync(ProductForCreationDto product)
     {
       var newProduct = new EntityProduct
       {
