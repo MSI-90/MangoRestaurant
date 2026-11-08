@@ -1,3 +1,7 @@
+using AutoMapper;
+using Mango.Services.ProductAPI.API__PL_.Mappers;
+using Mango.Services.ProductAPI.Application__BLL_;
+using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Mango.Services.ProductAPI.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,8 +22,12 @@ namespace Mango.Services.ProductAPI
       builder.Services.AddDbContext<ApplicationDbContext>(options =>
           options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-      var app = builder.Build();
+      builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
+      builder.Services.AddScoped<IProductService, ProductService>();
+
+      var app = builder.Build();
+      
       // Configure the HTTP request pipeline.
       if (app.Environment.IsDevelopment())
       {

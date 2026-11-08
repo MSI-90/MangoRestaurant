@@ -4,9 +4,10 @@ namespace Mango.Services.ProductAPI.Application__BLL_.Contracts
 {
   public interface IProductService
   {
-    Task<IEnumerable<Product>> GetProducts();
-    Task<Product> GetProductById(Guid productId);
-    Task<Product> CreateUpdateProduct(Product product);
-    Task<bool> DeleteProductById(Guid productId);
+    Task<IEnumerable<Product>> GetProductsAsync();
+    Task<Product> GetProductByIdAsync(Guid productId);
+    Task<Guid> CreateProductAsync(Product product);
+    Task<Product> UpdateProductAsync(Product product);
+    Task DeleteProductByIdAsync(Guid productId);
   }
 }
