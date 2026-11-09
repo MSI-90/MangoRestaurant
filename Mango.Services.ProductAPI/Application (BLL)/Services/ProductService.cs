@@ -32,29 +32,28 @@ namespace Mango.Services.ProductAPI.Application__BLL_
       return result.Entity.ProductId;
     }
 
-    public async Task<ProductOutputDto> UpdateProductAsync(ProductForUpdateDto product)
+    public async Task<ProductOutputDto> UpdateProductAsync(Guid productId, ProductForUpdateDto product)
     {
-      var productInDb = await GetProductByIdAsync(product.ProductId) ?? throw new InvalidOperationException("Product not found");
+      var productInDb = await GetProductByIdAsync(productId);
       var productToUpdate = new EntityProduct
       {
+        ProductId = productId,
         CategoryName = product.CategoryName,
         Description = product.Description,
         Name = product.Name,
         ImageUrl = product.ImageUrl,
-        Price = product.Price,
-        ProductId = product.ProductId
+        Price = product.Price
       };
 
       _context.Products.Update(productToUpdate);
       await _context.SaveChangesAsync();
 
-      return await GetProductByIdAsync(product.ProductId);
+      return await GetProductByIdAsync(productId);
     }
 
     public async Task<bool> DeleteProductByIdAsync(Guid productId)
     {
       var product = await GetProductByIdAsync(productId);
-      if (product is null) return false;
 
       _context.Products.Remove(new EntityProduct
       {
@@ -74,18 +73,17 @@ namespace Mango.Services.ProductAPI.Application__BLL_
     {
       var product = await _context.Products.AsNoTracking().Where(p => p.ProductId == productId).FirstOrDefaultAsync();
 
-      if (product is null)
-        throw new ProductNotFoundException(productId);
-
-      return new ProductOutputDto
-      {
-        ProductId = product.ProductId,
-        Name = product.Name,
-        Price = product.Price,
-        Description = product.Description,
-        CategoryName = product.CategoryName,
-        ImageUrl = product.ImageUrl
-      };
+      return product is null 
+        ? throw new ProductNotFoundException(productId) 
+        : new ProductOutputDto
+        {
+          ProductId = product.ProductId,
+          Name = product.Name,
+          Price = product.Price,
+          Description = product.Description,
+          CategoryName = product.CategoryName,
+          ImageUrl = product.ImageUrl
+        };
     }
 
     public async Task<IEnumerable<ProductOutputDto>> GetProductsAsync()

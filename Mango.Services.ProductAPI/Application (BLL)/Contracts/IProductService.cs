@@ -8,7 +8,7 @@ namespace Mango.Services.ProductAPI.Application__BLL_.Contracts
     Task<IEnumerable<ProductOutputDto>> GetProductsAsync();
     Task<ProductOutputDto> GetProductByIdAsync(Guid productId);
     Task<Guid> CreateProductAsync(ProductForCreationDto product);
-    Task<ProductOutputDto> UpdateProductAsync(ProductForUpdateDto product);
+    Task<ProductOutputDto> UpdateProductAsync(Guid productId, ProductForUpdateDto product);
     Task<bool> DeleteProductByIdAsync(Guid productId);
   }
 }

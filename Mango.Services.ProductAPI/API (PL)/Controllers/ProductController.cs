@@ -5,9 +5,7 @@ using Mango.Services.ProductAPI.Shared.DTO;
 
 namespace Mango.Services.ProductAPI.API__PL_.Controllers
 {
-  //TODO: Внедрить IExceptionHandlerMiddleware для глобальной обработки ошибок
   //TODO: Внедрить FluentValidation для валидации входных данных, здесь подумать о целесообразности ибо можно обойтись родными DataAnnotations
-  //TODO: Exceptions для IExecptionHandlerMiddleware, например NotFoundException и т.д.
   //TODO: Для изображений товаров - облако (здесь подумать что использовать, локально или глобально)
 
   [Route("api/products")]
@@ -43,9 +41,10 @@ namespace Mango.Services.ProductAPI.API__PL_.Controllers
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateProductAsyc([FromBody] ProductForUpdateDto product)
+    [Route("{id:guid}")]
+    public async Task<IActionResult> UpdateProductAsyc(Guid id, [FromBody] ProductForUpdateDto product)
     {
-      var newProduct = await _productService.UpdateProductAsync(product);
+      var newProduct = await _productService.UpdateProductAsync(id, product);
       return Ok(newProduct);
     }
 
