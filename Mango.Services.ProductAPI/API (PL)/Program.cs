@@ -20,6 +20,8 @@ namespace Mango.Services.ProductAPI
       builder.Services.AddDbContext<ApplicationDbContext>(options =>
           options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+      builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
       builder.Services.AddScoped<IProductService, ProductService>();
 
       var app = builder.Build();
@@ -31,6 +33,8 @@ namespace Mango.Services.ProductAPI
       }
 
       app.UseSwaggerUI(opt => opt.SwaggerEndpoint("/openapi/v1.json", "v1"));
+
+      app.UseExceptionHandler(opt => {});
 
       app.UseHttpsRedirection();
 

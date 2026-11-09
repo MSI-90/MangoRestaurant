@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 using EntityProduct = Mango.Services.ProductAPI.Data.Entities.Product;
 using Mango.Services.ProductAPI.Shared.DTO;
+using Mango.Services.ProductAPI.Application__BLL_.Exceptions;
 
 namespace Mango.Services.ProductAPI.Application__BLL_
 {
@@ -71,7 +72,11 @@ namespace Mango.Services.ProductAPI.Application__BLL_
 
     public async Task<ProductOutputDto> GetProductByIdAsync(Guid productId)
     {
-      var product = await _context.Products.AsNoTracking().Where(p => p.ProductId == productId).FirstOrDefaultAsync() ?? throw new InvalidOperationException("Product not found");
+      var product = await _context.Products.AsNoTracking().Where(p => p.ProductId == productId).FirstOrDefaultAsync();
+
+      if (product is null)
+        throw new ProductNotFoundException(productId);
+
       return new ProductOutputDto
       {
         ProductId = product.ProductId,
