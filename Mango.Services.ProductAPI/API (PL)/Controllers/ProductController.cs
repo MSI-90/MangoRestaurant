@@ -18,7 +18,13 @@ namespace Mango.Services.ProductAPI.API__PL_.Controllers
       _productService = productService;
     }
 
+    /// <summary>
+    /// Получает список всех продуктов
+    /// </summary>
+    /// <returns></returns>
+    /// <response code="200">Возвращает список продуктов</response>
     [HttpGet]
+    [ProducesResponseType(200)]
     public async Task<IActionResult> GetProductsAsync()
     {
       var products = await _productService.GetProductsAsync();
