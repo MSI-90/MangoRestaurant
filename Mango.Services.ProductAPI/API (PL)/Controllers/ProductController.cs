@@ -5,7 +5,6 @@ using Mango.Services.ProductAPI.Shared.DTO;
 
 namespace Mango.Services.ProductAPI.API__PL_.Controllers
 {
-  //TODO: выкинуть паттерн Result (ResponseDto) и использовать IActionResult
   //TODO: Внедрить IExceptionHandlerMiddleware для глобальной обработки ошибок
   //TODO: Внедрить FluentValidation для валидации входных данных, здесь подумать о целесообразности ибо можно обойтись родными DataAnnotations
   //TODO: Exceptions для IExecptionHandlerMiddleware, например NotFoundException и т.д.
@@ -16,93 +15,46 @@ namespace Mango.Services.ProductAPI.API__PL_.Controllers
   public class ProductController : ControllerBase
   {
     private readonly IProductService _productService;
-    protected ResponseDto _response;
     public ProductController(IProductService productService)
     {
       _productService = productService;
-      this._response = new ResponseDto();
     }
 
     [HttpGet]
-    public async Task<ResponseDto> GetProductsAsync()
+    public async Task<IActionResult> GetProductsAsync()
     {
-      try
-      {
-        var products = await _productService.GetProductsAsync();
-        _response.Result = products;
-      }
-      catch (Exception ex)
-      {
-        _response.IsSuccess = false;
-        _response.ErrorMessages = new List<string>() { ex.ToString() };
-      }
-      return _response;
+      var products = await _productService.GetProductsAsync();
+      return Ok(products);
     }
 
     [HttpGet]
-    [Route("{id}")]
-    public async Task<ResponseDto> GetProductByIdAsync(Guid id)
+    [Route("{id:guid}", Name = "GetProductById")]
+    public async Task<IActionResult> GetProductByIdAsync(Guid id)
     {
-      try
-      {
-        var product = await _productService.GetProductByIdAsync(id);
-        _response.Result = product;
-      }
-      catch (Exception ex)
-      {
-        _response.IsSuccess = false;
-        _response.ErrorMessages = new List<string>() { ex.ToString() };
-      }
-      return _response;
+      var product = await _productService.GetProductByIdAsync(id);
+      return Ok(product);
     }
 
     [HttpPost]
-    public async Task<ResponseDto> AddProductAsync([FromBody] ProductForCreationDto product)
+    public async Task<IActionResult> AddProductAsync([FromBody] ProductForCreationDto product)
     {
-      try
-      {
-        var newProduct = await _productService.CreateProductAsync(product);
-        _response.Result = newProduct;
-      }
-      catch (Exception ex)
-      {
-        _response.IsSuccess = false;
-        _response.ErrorMessages = new List<string>() { ex.ToString() };
-      }
-      return _response;
+      var newProduct = await _productService.CreateProductAsync(product);
+      return CreatedAtRoute("GetProductById", new { id = newProduct}, newProduct);
     }
 
     [HttpPut]
-    public async Task<ResponseDto> UpdateProductAsyc([FromBody] ProductForUpdateDto product)
+    public async Task<IActionResult> UpdateProductAsyc([FromBody] ProductForUpdateDto product)
     {
-      try
-      {
-        var newProduct = await _productService.UpdateProductAsync(product);
-        _response.Result = newProduct;
-      }
-      catch (Exception ex)
-      {
-        _response.IsSuccess = false;
-        _response.ErrorMessages = new List<string>() { ex.ToString() };
-      }
-      return _response;
+      var newProduct = await _productService.UpdateProductAsync(product);
+      return Ok(newProduct);
     }
 
     [HttpDelete]
-    [Route("{id}")]
-    public async Task<ResponseDto> DeleteProductAsync(Guid id)
+    [Route("{id:guid}")]
+    public async Task<IActionResult> DeleteProductAsync(Guid id)
     {
-      try
-      {
-        var result = _response.Result = await _productService.DeleteProductByIdAsync(id);
-        _response.Result = result;
-      }
-      catch (Exception ex)
-      {
-        _response.IsSuccess = false;
-        _response.ErrorMessages = new List<string>() { ex.ToString() };
-      }
-      return _response;
+      var result = await _productService.DeleteProductByIdAsync(id);
+      return NoContent();
     }
   }
 }
