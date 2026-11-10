@@ -31,34 +31,63 @@ namespace Mango.Services.ProductAPI.API__PL_.Controllers
       return Ok(products);
     }
 
+    /// <summary>
+    /// Получить продукт по идентификатору
+    /// </summary>
+    /// <param name="productId">GUID товара</param>
+    /// <returns>Модель продукта</returns>
     [HttpGet]
-    [Route("{id:guid}", Name = "GetProductById")]
-    public async Task<IActionResult> GetProductByIdAsync(Guid id)
+    [Route("{productId:guid}", Name = "GetProductById")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> GetProductByIdAsync(Guid productId)
     {
-      var product = await _productService.GetProductByIdAsync(id);
+      var product = await _productService.GetProductByIdAsync(productId);
       return Ok(product);
     }
 
+    /// <summary>
+    /// Добавить новый продукт
+    /// </summary>
+    /// <param name="product">Модель продукта для создания</param>
+    /// <returns>Созданный продукт</returns>
     [HttpPost]
+    [ProducesResponseType(201)]
+    [ProducesResponseType(400)]
     public async Task<IActionResult> AddProductAsync([FromBody] ProductForCreationDto product)
     {
       var newProduct = await _productService.CreateProductAsync(product);
-      return CreatedAtRoute("GetProductById", new { id = newProduct}, newProduct);
+      return CreatedAtRoute("GetProductById", new { productId = newProduct?.ProductId}, newProduct);
     }
 
+    /// <summary>
+    /// Обновить полностью существующий продукт
+    /// </summary>
+    /// <param name="productId">Guid продукта</param>
+    /// <param name="product">Модель продукта для обновления</param>
+    /// <returns>Обновленный продукт</returns>
     [HttpPut]
-    [Route("{id:guid}")]
-    public async Task<IActionResult> UpdateProductAsyc(Guid id, [FromBody] ProductForUpdateDto product)
+    [Route("{productId:guid}")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> UpdateProductAsyc(Guid productId, [FromBody] ProductForUpdateDto product)
     {
-      var newProduct = await _productService.UpdateProductAsync(id, product);
+      var newProduct = await _productService.UpdateProductAsync(productId, product);
       return Ok(newProduct);
     }
 
+    /// <summary>
+    /// Удалить продукт по идентификатору
+    /// </summary>
+    /// <param name="productId">Guid продукта</param>
+    /// <returns>204 статус</returns>
     [HttpDelete]
-    [Route("{id:guid}")]
-    public async Task<IActionResult> DeleteProductAsync(Guid id)
+    [Route("{productId:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> DeleteProductAsync(Guid productId)
     {
-      var result = await _productService.DeleteProductByIdAsync(id);
+      var result = await _productService.DeleteProductByIdAsync(productId);
       return NoContent();
     }
   }

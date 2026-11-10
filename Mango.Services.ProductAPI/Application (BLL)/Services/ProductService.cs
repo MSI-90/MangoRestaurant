@@ -15,49 +15,20 @@ namespace Mango.Services.ProductAPI.Application__BLL_
     {
       _context = context;
     }
-    public async Task<Guid> CreateProductAsync(ProductForCreationDto product)
+    public async Task<ProductOutputDto?> CreateProductAsync(ProductForCreationDto productForCreation)
     {
-      var newProduct = new EntityProduct
-      {
-        ProductId = Guid.NewGuid(),
-        Name = product.Name,
-        Price = product.Price,
-        Description = product.Description,
-        CategoryName = product.CategoryName,
-        ImageUrl = product.ImageUrl
-      };
-      
-      var result = await _context.Products.AddAsync(newProduct);
-      _context.SaveChanges();
-      return result.Entity.ProductId;
+      var newProduct = TranslateToEntityProduct(productForCreation);
+      var result = _context.Products.Add(newProduct!);
+      await _context.SaveChangesAsync();
+      return TranslateToProductOutput(result.Entity);
     }
-
-    public async Task<ProductOutputDto> UpdateProductAsync(Guid productId, ProductForUpdateDto product)
+    
+    public async Task<ProductOutputDto?> UpdateProductAsync(Guid productId, ProductForUpdateDto product)
     {
-      var productInDb = await GetProductByIdAsync(productId);
-      var productToUpdate = new EntityProduct
+      await GetProductByIdAsync(productId);
+      _context.Products.Update(new EntityProduct
       {
         ProductId = productId,
-        CategoryName = product.CategoryName,
-        Description = product.Description,
-        Name = product.Name,
-        ImageUrl = product.ImageUrl,
-        Price = product.Price
-      };
-
-      _context.Products.Update(productToUpdate);
-      await _context.SaveChangesAsync();
-
-      return await GetProductByIdAsync(productId);
-    }
-
-    public async Task<bool> DeleteProductByIdAsync(Guid productId)
-    {
-      var product = await GetProductByIdAsync(productId);
-
-      _context.Products.Remove(new EntityProduct
-      {
-        ProductId = product.ProductId,
         Name = product.Name,
         Price = product.Price,
         Description = product.Description,
@@ -66,39 +37,52 @@ namespace Mango.Services.ProductAPI.Application__BLL_
       });
 
       await _context.SaveChangesAsync();
+      return await GetProductByIdAsync(productId);
+    }
+
+    public async Task<bool> DeleteProductByIdAsync(Guid productId)
+    {
+      var productInDb = await GetProductByIdAsync(productId);
+      _context.Products.Remove(new EntityProduct { ProductId = productId });
+
+      await _context.SaveChangesAsync();
       return true;
     } 
 
-    public async Task<ProductOutputDto> GetProductByIdAsync(Guid productId)
+    public async Task<ProductOutputDto?> GetProductByIdAsync(Guid productId)
     {
       var product = await _context.Products.AsNoTracking().Where(p => p.ProductId == productId).FirstOrDefaultAsync();
-
-      return product is null 
-        ? throw new ProductNotFoundException(productId) 
-        : new ProductOutputDto
-        {
-          ProductId = product.ProductId,
-          Name = product.Name,
-          Price = product.Price,
-          Description = product.Description,
-          CategoryName = product.CategoryName,
-          ImageUrl = product.ImageUrl
-        };
+      return product is not null 
+        ? TranslateToProductOutput(product) 
+        : throw new ProductNotFoundException(productId);
     }
 
-    public async Task<IEnumerable<ProductOutputDto>> GetProductsAsync()
+    public async Task<IEnumerable<ProductOutputDto?>> GetProductsAsync()
     {
       var products = await _context.Products.AsNoTracking().ToListAsync();
-
-      return products.Select(p => new ProductOutputDto
-      {
-        ProductId = p.ProductId,
-        Name = p.Name,
-        Price = p.Price,
-        Description = p.Description,
-        CategoryName = p.CategoryName,
-        ImageUrl = p.ImageUrl
-      }) ?? Enumerable.Empty<ProductOutputDto>();
+      return products.Select(p => TranslateToProductOutput(p)) ?? [];
     }
+
+    private EntityProduct? TranslateToEntityProduct(ProductForCreationDto? productForCreation) =>
+      productForCreation is not null ? new EntityProduct
+      {
+        ProductId = Guid.NewGuid(),
+        Name = productForCreation.Name,
+        Price = productForCreation.Price,
+        Description = productForCreation.Description,
+        CategoryName = productForCreation.CategoryName,
+        ImageUrl = productForCreation.ImageUrl
+      } : null;
+
+    private ProductOutputDto? TranslateToProductOutput(EntityProduct? product) =>
+      product is not null ? new ProductOutputDto
+      {
+        ProductId = product.ProductId,
+        Name = product.Name,
+        Price = product.Price,
+        Description = product.Description,
+        CategoryName = product.CategoryName,
+        ImageUrl = product.ImageUrl
+      } : null;
   }
 }
