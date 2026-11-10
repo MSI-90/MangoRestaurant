@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Игнорировать папку OpenApi на любом уровне вложенности
+**/OpenApi/
+
 # User-specific files
 *.rsuser
 *.suo

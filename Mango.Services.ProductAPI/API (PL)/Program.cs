@@ -3,8 +3,8 @@ using Mango.Services.ProductAPI.Application__BLL_;
 using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Mango.Services.ProductAPI.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 
 namespace Mango.Services.ProductAPI
 {
@@ -28,16 +28,39 @@ namespace Mango.Services.ProductAPI
 
       builder.Services.AddScoped<IProductService, ProductService>();
 
+      builder.Services.AddOpenApi(options =>
+      {
+        options.AddDocumentTransformer((document, context, cancellationToken) =>
+        {
+          document.Info = new OpenApiInfo
+          {
+            Title = "MSI API",
+            Version = "v1",
+            Description = "ProductService API by MSI",
+            TermsOfService = new Uri("https://example.com/terms"),
+            Contact = new OpenApiContact
+            {
+              Name = "Sergey Miller",
+              Email = "s.miller@list.ru",
+              Url = new Uri("https://barnaul.hh.ru/applicant/resumes")
+            },
+            License = new OpenApiLicense
+            {
+              Name = "Product API LICX",
+              Url = new Uri("https://example.com/license")
+            }
+          };
+          return Task.CompletedTask;
+        });
+      });
+
       var app = builder.Build();
       
       // Configure the HTTP request pipeline.
       if (app.Environment.IsDevelopment())
       {
         app.MapOpenApi();
-        app.UseSwaggerUI(options =>
-        {
-          options.SwaggerEndpoint("/openapi/v1.json", "v1");
-        });
+        app.MapScalarApiReference();
       }
 
       app.UseExceptionHandler(opt => {});
