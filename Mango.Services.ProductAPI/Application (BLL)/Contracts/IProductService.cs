@@ -1,5 +1,4 @@
-﻿using Mango.Services.ProductAPI.Application__BLL_.Models;
-using Mango.Services.ProductAPI.Shared.DTO;
+﻿using Mango.Services.ProductAPI.Shared.DTO;
 
 namespace Mango.Services.ProductAPI.Application__BLL_.Contracts
 {
