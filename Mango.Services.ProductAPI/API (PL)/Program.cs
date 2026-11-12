@@ -2,6 +2,7 @@ using Mango.Services.ProductAPI.API__PL_.Controllers;
 using Mango.Services.ProductAPI.Application__BLL_;
 using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Mango.Services.ProductAPI.Data.DbContexts;
+using Mango.Services.ProductAPI.Data__DAL_.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
@@ -27,6 +28,7 @@ namespace Mango.Services.ProductAPI
       builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
       builder.Services.AddScoped<IProductService, ProductService>();
+      builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
       builder.Services.AddOpenApi(options =>
       {
