@@ -3,6 +3,7 @@ using Mango.Services.ProductAPI.Application__BLL_;
 using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Mango.Services.ProductAPI.Data.DbContexts;
 using Mango.Services.ProductAPI.Data__DAL_.Repository;
+using Mango.Services.ProductAPI.Shared.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
@@ -26,6 +27,9 @@ namespace Mango.Services.ProductAPI
           options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
       builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+      //регистрация S3 конфига
+      builder.Services.Configure<S3StorageDto>(builder.Configuration.GetSection("s3Storage"));
 
       builder.Services.AddScoped<IProductService, ProductService>();
       builder.Services.AddScoped<IProductRepository, ProductRepository>();
