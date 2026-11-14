@@ -240,6 +240,10 @@ aws s3 ls
 
 5. Конфигурация приложения (.NET)
 В файле appsettings.Development.json вашего сервиса добавьте секцию с настройками S3:
+
+В файле `appsettings.Development.json` вашего сервиса добавьте секцию с настройками S3:
+
+```json
 "s3Storage": {
   "AccessKey": "test",
   "SecretAccessKey": "test",
