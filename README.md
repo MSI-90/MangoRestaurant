@@ -243,7 +243,7 @@ aws s3 ls
 
 В файле `appsettings.Development.json` вашего сервиса добавьте секцию с настройками S3:
 
-```json
+json
 "s3Storage": {
   "AccessKey": "test",
   "SecretAccessKey": "test",
@@ -251,7 +251,8 @@ aws s3 ls
   "BucketName": "product-images"
 }
 
-##локальный запуск##
+```
+## Локальный запуск ##
 Для локального запуска потребуется:
 
 -   установленный .NET SDK подходящей для решения версии;
