@@ -28,8 +28,7 @@
 -   **ASP.NET Core MVC** --- пользовательский интерфейс.
 -   **Entity Framework Core** --- доступ к данным.
 -   **Microsoft SQL Server** --- реляционная база данных.
--   **AutoMapper** --- преобразование моделей и DTO.
--   **Swagger / OpenAPI** --- описание и тестирование HTTP API.
+-   **OpenAPI / Scalar** --- описание и тестирование HTTP API.
 
 Список технологий будет дополняться по мере развития проекта.
 
@@ -60,22 +59,6 @@ MangoRestaurant/
 
 Каждый микросервис отвечает за отдельную предметную область и
 предоставляет собственный API.
-
-На текущем этапе разрабатывается:
-
-  -----------------------------------------------------------------------------
-  Сервис                        Назначение              Статус
-  ----------------------------- ----------------------- -----------------------
-  `Mango.Services.ProductAPI`   Управление товарами:    В разработке
-                                получение, создание,    
-                                изменение и удаление    
-
-  -----------------------------------------------------------------------------
-
-Другие сервисы будут добавляться по мере необходимости. Каждый новый
-сервис должен иметь чётко определённую ответственность и не должен
-напрямую обращаться к внутренним сущностям или базе данных другого
-сервиса.
 
 ### Внутренняя архитектура микросервиса
 
@@ -187,6 +170,82 @@ MVC-приложение выступает клиентом API и не дол�
 
 Инструкция по запуску будет дополнена после настройки всех проектов и
 конфигурации окружения.
+
+## 🛠 Локальный AWS Emulator (S3)
+
+Для локальной разработки и тестирования загрузки фотографий товаров используется **AWS Emulator** — официальный инструмент от Amazon, который эмулирует поведение AWS S3 в Docker-контейнере. Это позволяет не тратить реальные деньги и не создавать реальные бакеты в облаке во время разработки.
+
+### 1. Предварительные требования
+- Установленный **Docker Desktop** (с поддержкой WSL 2 для Windows).
+- Установленный **AWS CLI** (версия 2).
+- Установленный **.NET SDK** (для запуска проекта).
+
+### 2. Создание и запуск эмулятора
+
+**Шаг 1.** В папке `infra/aws-emulator/` создайте файл `Dockerfile` (без расширения) со следующим содержимым:
+
+```dockerfile
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023-minimal
+ADD https://downloads.aws.com/aws-emulator/packages/aws-emulator/LTS/latest/aws-emulator-x86_64.rpm /tmp/aws-emulator.rpm
+RUN rpm -i /tmp/aws-emulator.rpm && rm /tmp/aws-emulator.rpm \
+    && mkdir -p /home/emulator && chown 1000 /home/emulator
+USER 1000
+ENV HOME=/home/emulator
+EXPOSE 9297
+ENTRYPOINT ["aws-emulator", "-b", "0.0.0.0"]
+
+**Примечание: Если вы используете Mac на Apple Silicon (M1/M2/M3), замените x86_64 на aarch64 в строке ADD**
+**Шаг 2.** Шаг 2. Соберите Docker-образ. Откройте терминал в папке infra/aws-emulator и выполните:
+docker build -t aws-emulator .
+
+**Шаг 3.** Создайте папку для хранения сертификатов и учётных данных эмулятора на вашей машине:
+Windows (PowerShell):
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.aws\emulator"
+macOS / Linux:
+mkdir -p ~/.aws/emulator
+
+**Шаг 4.** Запустите контейнер:
+docker run -d --rm --name aws-emulator -p 127.0.0.1:9297:9297 -v ~/.aws/emulator:/home/emulator/.aws/emulator aws-emulator
+
+3. Настройка AWS CLI для работы с эмулятором
+По умолчанию AWS CLI пытается подключиться к настоящему AWS. Нам нужно перенаправить его на локальный эмулятор. Откройте PowerShell и выполните следующие команды:
+# 1. Указываем адрес эмулятора
+$env:AWS_ENDPOINT_URL = "https://127.0.0.1:9297"
+
+# 2. Указываем путь к сертификату эмулятора (чтобы CLI доверял HTTPS)
+$env:AWS_CA_BUNDLE = "$env:USERPROFILE\.aws\emulator\9297\ca.pem"
+
+# 3. Указываем пути к файлам конфигурации и кредам, которые сгенерировал эмулятор
+$env:AWS_SHARED_CREDENTIALS_FILE = "$env:USERPROFILE\.aws\emulator\9297\emulator_credentials"
+$env:AWS_CONFIG_FILE = "$env:USERPROFILE\.aws\emulator\9297\config"
+
+# 4. Устанавливаем регион
+$env:AWS_REGION = "us-east-1"
+$env:AWS_DEFAULT_REGION = "us-east-1"
+
+# 5. Удаляем возможные настоящие ключи AWS из окружения, чтобы случайно не отправить запрос в реальное облако
+Remove-Item Env:AWS_ACCESS_KEY_ID, Env:AWS_SECRET_ACCESS_KEY, Env:AWS_SESSION_TOKEN, Env:AWS_PROFILE -ErrorAction SilentlyContinue
+
+Проверка подключения:
+aws sts get-caller-identity
+В ответе вы должны увидеть "Account": "000000000000". Это означает, что CLI успешно подключен к эмулятору.
+
+4. Создание бакета для фотографий
+aws s3 mb s3://product-images
+
+Проверить список созданных бакетов:
+aws s3 ls
+
+⚠️ Важно: Переменные окружения, заданные через $env: в PowerShell, действуют только в текущем окне терминала. Если вы закроете его, при следующем запуске команды нужно будет выполнить снова (или добавить их в профиль PowerShell / использовать профиль AWS CLI).
+
+5. Конфигурация приложения (.NET)
+В файле appsettings.Development.json вашего сервиса добавьте секцию с настройками S3:
+"s3Storage": {
+  "AccessKey": "test",
+  "SecretAccessKey": "test",
+  "EndpointURL": "https://127.0.0.1:9297",
+  "BucketName": "product-images"
+}
 
 Для локального запуска потребуется:
 
