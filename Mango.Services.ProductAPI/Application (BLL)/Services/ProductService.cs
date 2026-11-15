@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mango.Services.ProductAPI.Application__BLL_
 {
-  public class ProductService : IProductService
+  public sealed class ProductService : IProductService
   {
     private readonly ApplicationDbContext _context;
     private readonly IProductRepository _productRep;

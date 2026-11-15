@@ -1,12 +1,14 @@
 using Mango.Services.ProductAPI.API__PL_.Controllers;
 using Mango.Services.ProductAPI.Application__BLL_;
 using Mango.Services.ProductAPI.Application__BLL_.Contracts;
+using Mango.Services.ProductAPI.Application__BLL_.Services;
 using Mango.Services.ProductAPI.Data.DbContexts;
 using Mango.Services.ProductAPI.Data__DAL_.Repository;
 using Mango.Services.ProductAPI.Shared.DTO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
+using System.Data.SqlTypes;
 
 namespace Mango.Services.ProductAPI
 {
@@ -33,6 +35,8 @@ namespace Mango.Services.ProductAPI
 
       builder.Services.AddScoped<IProductService, ProductService>();
       builder.Services.AddScoped<IProductRepository, ProductRepository>();
+      builder.Services.AddScoped<IStorageS3Service, S3StorageService>();
+      builder.Services.AddScoped<IPhotoService, PhotoService>();
 
       builder.Services.AddOpenApi(options =>
       {

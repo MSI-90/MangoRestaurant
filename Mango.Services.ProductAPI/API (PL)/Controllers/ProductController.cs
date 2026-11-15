@@ -6,8 +6,6 @@ using Mango.Services.ProductAPI.Shared.DTO;
 namespace Mango.Services.ProductAPI.API__PL_.Controllers
 {
   //TODO: Внедрить FluentValidation для валидации входных данных, здесь подумать о целесообразности ибо можно обойтись родными DataAnnotations
-  //TODO: Для изображений товаров - облако (здесь подумать что использовать, локально или глобально)
-
   [Route("api/products")]
   [ApiController]
   public class ProductController : ControllerBase
