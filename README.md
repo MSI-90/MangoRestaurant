@@ -174,7 +174,7 @@ MVC-приложение выступает клиентом API и не дол�
 ## 🛠 Локальный AWS Emulator (S3)
 
 Для локальной разработки и тестирования загрузки фотографий товаров используется **AWS Emulator** — официальный инструмент от Amazon, который эмулирует поведение AWS S3 в Docker-контейнере. Это позволяет не тратить реальные деньги и не создавать реальные бакеты в облаке во время разработки.
-[Официальная документация:] (https://docs.aws.amazon.com/emulator/latest/userguide/what-is-service.html)
+[Официальная документация:]([docs/install.md](https://docs.aws.amazon.com/emulator/latest/userguide/what-is-service.html))
 
 ### 1. Предварительные требования
 - Установленный **Docker Desktop** (с поддержкой WSL 2 для Windows).
