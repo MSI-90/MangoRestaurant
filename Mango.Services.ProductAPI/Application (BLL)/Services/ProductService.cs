@@ -1,6 +1,7 @@
 ﻿using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Mango.Services.ProductAPI.Application__BLL_.Exceptions;
 using Mango.Services.ProductAPI.Application__BLL_.Mappers;
+using Mango.Services.ProductAPI.Application__BLL_.Models;
 using Mango.Services.ProductAPI.Data.DbContexts;
 using Mango.Services.ProductAPI.Data.Entities;
 using Mango.Services.ProductAPI.Data__DAL_.Repository;
@@ -13,7 +14,6 @@ namespace Mango.Services.ProductAPI.Application__BLL_
   {
     private readonly ApplicationDbContext _context;
     private readonly IProductRepository _productRep;
-
     public ProductService(ApplicationDbContext context, IProductRepository productRep)
     {
       _context = context;
@@ -22,6 +22,7 @@ namespace Mango.Services.ProductAPI.Application__BLL_
     public async Task<ProductOutputDto?> CreateProductAsync(ProductForCreationDto productForCreation)
     {
       var newProduct = ProductMapper.ToEntityProduct(productForCreation);
+      newProduct?.ProductId = Guid.NewGuid();
       var result = _context.Products.Add(newProduct!);
       await _context.SaveChangesAsync();
       return ProductMapper.ToProductOutputDto(result.Entity);
@@ -48,20 +49,35 @@ namespace Mango.Services.ProductAPI.Application__BLL_
 
       await _context.SaveChangesAsync();
       return true;
-    } 
+    }
 
+    /// <summary>
+    /// Получить продукт по идентификатору
+    /// </summary>
+    /// <param name="productId">Guid продукта</param>
+    /// <returns>DTO модель ProductOutputDto</returns>
     public async Task<ProductOutputDto?> GetProductByIdAsync(Guid productId)
     {
       var productInDb = await GetProductAndCheckIfExists(productId);
       return ProductMapper.ToProductOutputDto(productInDb);
     }
 
-    public async Task<IEnumerable<ProductOutputDto?>> GetProductsAsync()
+    /// <summary>
+    /// Получить весь набор данных о продуктах из БД
+    /// </summary>
+    /// <returns></returns>
+    public async Task<IReadOnlyList<ProductOutputDto?>> GetProductsAsync()
     {
-      var products = await _context.Products.AsNoTracking().ToListAsync();
-      return products.Select(p => ProductMapper.ToProductOutputDto(p)) ?? [];
+      var products = await _productRep.GetProductsAsync();
+      return products.Select(p => ProductMapper.ToProductOutputDto(p)).ToList() ?? [];
     }
 
+    /// <summary>
+    /// Проверка на наличие в БД Продукта по Guid эквивалентному переданному в качестве параметра и возврат его в виде результата
+    /// </summary>
+    /// <param name="id">Guid продукта</param>
+    /// <returns>Продукт</returns>
+    /// <exception cref="ProductNotFoundException">Кастомное исключение в виде ответа в случае отсутствия продукта</exception>
     private async Task<Product?> GetProductAndCheckIfExists(Guid id)
     {
       var product = await _productRep.GetProductByIdAsync(id);

@@ -5,5 +5,6 @@ namespace Mango.Services.ProductAPI.Data__DAL_.Repository
   public interface IProductRepository
   {
     Task<Product?> GetProductByIdAsync(Guid productId);
+    Task<IReadOnlyList<Product>> GetProductsAsync();
   }
 }

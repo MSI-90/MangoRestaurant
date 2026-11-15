@@ -8,7 +8,6 @@ namespace Mango.Services.ProductAPI.Application__BLL_.Mappers
     internal static Product? ToEntityProduct(this ProductForCreationDto? productForCreation) =>
       productForCreation is not null ? new Product
       {
-        ProductId = Guid.NewGuid(),
         Name = productForCreation.Name,
         Price = productForCreation.Price,
         Description = productForCreation.Description,

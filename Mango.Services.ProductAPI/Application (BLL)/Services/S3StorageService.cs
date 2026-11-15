@@ -1,12 +1,10 @@
 ﻿using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
-using Amazon.Util;
 using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Mango.Services.ProductAPI.Application__BLL_.Exceptions;
 using Mango.Services.ProductAPI.Shared.DTO;
 using Microsoft.Extensions.Options;
-using System.Net.Http;
 
 namespace Mango.Services.ProductAPI.Application__BLL_.Services
 {
