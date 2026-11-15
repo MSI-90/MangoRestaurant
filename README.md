@@ -174,88 +174,59 @@ MVC-приложение выступает клиентом API и не дол�
 ## 🛠 Локальный AWS Emulator (S3)
 
 Для локальной разработки и тестирования загрузки фотографий товаров используется **AWS Emulator** — официальный инструмент от Amazon, который эмулирует поведение AWS S3 в Docker-контейнере. Это позволяет не тратить реальные деньги и не создавать реальные бакеты в облаке во время разработки.
+[Официальная документация:] (https://docs.aws.amazon.com/emulator/latest/userguide/what-is-service.html)
 
 ### 1. Предварительные требования
 - Установленный **Docker Desktop** (с поддержкой WSL 2 для Windows).
-- Установленный **AWS CLI** (версия 2).
 - Установленный **.NET SDK** (для запуска проекта).
 
-### 2. Создание и запуск эмулятора
+### 2. Запуск инфраструктуры
 
 **Шаг 1.** В папке `infra/aws-emulator/` создайте файл `Dockerfile` (без расширения) со следующим содержимым:
 
-```dockerfile
-FROM public.ecr.aws/amazonlinux/amazonlinux:2023-minimal
-ADD https://downloads.aws.com/aws-emulator/packages/aws-emulator/LTS/latest/aws-emulator-x86_64.rpm /tmp/aws-emulator.rpm
-RUN rpm -i /tmp/aws-emulator.rpm && rm /tmp/aws-emulator.rpm \
-    && mkdir -p /home/emulator && chown 1000 /home/emulator
-USER 1000
-ENV HOME=/home/emulator
-EXPOSE 9297
-ENTRYPOINT ["aws-emulator", "-b", "0.0.0.0"]
+Вся инфраструктура (сборка эмулятора, его запуск и создание бакета для фотографий) автоматизирована с помощью docker-compose.yml, который находится в корне решения.
 
-**Примечание: Если вы используете Mac на Apple Silicon (M1/M2/M3), замените x86_64 на aarch64 в строке ADD**
-**Шаг 2.** Шаг 2. Соберите Docker-образ. Откройте терминал в папке infra/aws-emulator и выполните:
-docker build -t aws-emulator .
+**Шаг 1.** Убедитесь, что Docker Desktop запущен.
 
-**Шаг 3.** Создайте папку для хранения сертификатов и учётных данных эмулятора на вашей машине:
-Windows (PowerShell):
-New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.aws\emulator"
-macOS / Linux:
-mkdir -p ~/.aws/emulator
+**Шаг 2.** Откройте терминал в корневой папке решения (там, где лежит docker-compose.yml) и выполните команду:
+```bash
+docker compose up -d
+```
+**Что произойдет:**
 
-**Шаг 4.** Запустите контейнер:
-docker run -d --rm --name aws-emulator -p 127.0.0.1:9297:9297 -v ~/.aws/emulator:/home/emulator/.aws/emulator aws-emulator
+- Соберется образ aws-emulator из файла infra/aws-emulator/Dockerfile (если он еще не собран).
+- Запустится контейнер эмулятора на порту 9297 без проверки подписи (флаг -a off).
+- Запустится временный контейнер create-bucket, который создаст бакет product-images и завершит работу.
 
-3. Настройка AWS CLI для работы с эмулятором
-По умолчанию AWS CLI пытается подключиться к настоящему AWS. Нам нужно перенаправить его на локальный эмулятор. Откройте PowerShell и выполните следующие команды:
-# 1. Указываем адрес эмулятора
-$env:AWS_ENDPOINT_URL = "https://127.0.0.1:9297"
+**Шаг 3.** Проверьте, что эмулятор запущен:
+```bah
+docker compose ps
+```
+Контейнер aws-emulator должен быть в статусе Up.
 
-# 2. Указываем путь к сертификату эмулятора (чтобы CLI доверял HTTPS)
-$env:AWS_CA_BUNDLE = "$env:USERPROFILE\.aws\emulator\9297\ca.pem"
+Остановка инфраструктуры:
+```bash
+docker compose down
+```
 
-# 3. Указываем пути к файлам конфигурации и кредам, которые сгенерировал эмулятор
-$env:AWS_SHARED_CREDENTIALS_FILE = "$env:USERPROFILE\.aws\emulator\9297\emulator_credentials"
-$env:AWS_CONFIG_FILE = "$env:USERPROFILE\.aws\emulator\9297\config"
+**Важно:** Эмулятор хранит все ресурсы (включая бакеты и файлы) только в оперативной памяти. При перезапуске контейнера бакет удаляется, и docker-compose.yml создает его заново. Это нормальное поведение для локальной разработки.
 
-# 4. Устанавливаем регион
-$env:AWS_REGION = "us-east-1"
-$env:AWS_DEFAULT_REGION = "us-east-1"
-
-# 5. Удаляем возможные настоящие ключи AWS из окружения, чтобы случайно не отправить запрос в реальное облако
-Remove-Item Env:AWS_ACCESS_KEY_ID, Env:AWS_SECRET_ACCESS_KEY, Env:AWS_SESSION_TOKEN, Env:AWS_PROFILE -ErrorAction SilentlyContinue
-
-Проверка подключения:
-aws sts get-caller-identity
-В ответе вы должны увидеть "Account": "000000000000". Это означает, что CLI успешно подключен к эмулятору.
-
-4. Создание бакета для фотографий
-aws s3 mb s3://product-images
-
-Проверить список созданных бакетов:
-aws s3 ls
-
-⚠️ Важно: Переменные окружения, заданные через $env: в PowerShell, действуют только в текущем окне терминала. Если вы закроете его, при следующем запуске команды нужно будет выполнить снова (или добавить их в профиль PowerShell / использовать профиль AWS CLI).
-
-5. Конфигурация приложения (.NET)
+### 3. Конфигурация приложения (.NET)
 В файле appsettings.Development.json вашего сервиса добавьте секцию с настройками S3:
-
-В файле `appsettings.Development.json` вашего сервиса добавьте секцию с настройками S3:
-
-json
+```JSON
 "s3Storage": {
   "AccessKey": "test",
   "SecretAccessKey": "test",
   "EndpointURL": "https://127.0.0.1:9297",
   "BucketName": "product-images"
 }
-
 ```
-## Локальный запуск ##
+
+## Запуск проекта ##
 Для локального запуска потребуется:
 
--   установленный .NET SDK подходящей для решения версии;
--   доступный экземпляр Microsoft SQL Server;
--   настроенная строка подключения в локальной конфигурации;
--   применённые миграции базы данных.
+- установленный .NET SDK подходящей для решения версии;
+- доступный экземпляр Microsoft SQL Server;
+- настроенная строка подключения в локальной конфигурации;
+- применённые миграции базы данных;
+- запущенный Docker Desktop с инфраструктурой, поднятой через docker compose up -d.
