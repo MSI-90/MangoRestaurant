@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # 1. Сам эмулятор AWS
+  aws-emulator:
+    build:
+      context: ./infra/aws-emulator
+      dockerfile: Dockerfile
+    container_name: aws-emulator
+    ports:
+      - "127.0.0.1:9297:9297"
+    volumes:
+      - ~/.aws/emulator:/home/emulator/.aws/emulator
+    # Запускаем без проверки подписи, чтобы не мучиться с ключами
+    command: ["-a", "off"]
+
+  # 2. Временный контейнер, который создает бакет и выключается
+  create-bucket:
+    image: amazon/aws-cli:latest
+    depends_on:
+      - aws-emulator
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    # Ждем 3 секунды, чтобы эмулятор точно запустился, и создаем бакет
+    entrypoint: >
+      sh -c "
+      echo 'Waiting for emulator...' &&
+      sleep 3 &&
+      aws s3 mb s3://product-images --endpoint-url https://aws-emulator:9297 --no-verify-ssl &&
+      echo 'Bucket created successfully!'
+      "

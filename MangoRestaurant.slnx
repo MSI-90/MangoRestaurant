@@ -5,4 +5,7 @@
   <Folder Name="/Services/">
     <Project Path="Mango.Services.ProductAPI/Mango.Services.ProductAPI.csproj" />
   </Folder>
+  <Folder Name="/Элементы решения/">
+    <File Path="docker-compose.yml" />
+  </Folder>
 </Solution>
