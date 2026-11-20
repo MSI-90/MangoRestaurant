@@ -29,11 +29,11 @@ namespace Mango.Services.ProductAPI.Application__BLL_
         }
 
         _logger.LogError($"Что-то пошло не так: {exception.Message}");
-        await httpContext.Response.WriteAsync(new ErrorDetails()
+        await httpContext.Response.WriteAsJsonAsync(new ErrorDetails()
         {
           StatusCode = httpContext.Response.StatusCode,
           Message = exception.Message,
-        }.ToString());
+        }, cancellationToken);
       }
 
       return true;

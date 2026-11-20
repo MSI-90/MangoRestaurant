@@ -1,5 +1,6 @@
 ﻿using Mango.Services.ProductAPI.Data.Entities;
 using Mango.Services.ProductAPI.Shared.DTO;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Mango.Services.ProductAPI.Application__BLL_.Mappers
 {
@@ -25,5 +26,17 @@ namespace Mango.Services.ProductAPI.Application__BLL_.Mappers
         CategoryName = product.CategoryName,
         ImageUrl = product.ImageUrl
       } : null;
+
+    internal static void UpdateEntity(this ProductForUpdateDto? productToUpdate, Product? productInDb)
+    {
+      if (productToUpdate is null || productInDb is null) 
+        return;
+
+      productInDb.Name = productToUpdate.Name;
+      productInDb.Price = productToUpdate.Price;
+      productInDb.Description = productToUpdate.Description;
+      productInDb.CategoryName = productToUpdate.CategoryName;
+      productInDb.ImageUrl = productToUpdate.ImageUrl;
+    }
   }
 }

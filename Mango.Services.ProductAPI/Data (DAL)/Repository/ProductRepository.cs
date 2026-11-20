@@ -26,7 +26,7 @@ namespace Mango.Services.ProductAPI.Data__DAL_.Repository
     /// </summary>
     /// <returns>Списко продуктов</returns>
     public async Task<IReadOnlyList<Product>> GetProductsAsync() =>
-      await _context.Products.AsNoTracking().ToListAsync();
+      await _context.Products.ToListAsync();
 
   }
 }
