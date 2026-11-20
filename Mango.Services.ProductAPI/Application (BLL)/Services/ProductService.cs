@@ -1,6 +1,5 @@
 ﻿using Mango.Services.ProductAPI.Application__BLL_.Contracts;
 using Mango.Services.ProductAPI.Application__BLL_.Exceptions;
-using Mango.Services.ProductAPI.Application__BLL_.Mappers;
 using Mango.Services.ProductAPI.Data.DbContexts;
 using Mango.Services.ProductAPI.Data__DAL_.Repository;
 using Mango.Services.ProductAPI.Shared.DTO;
@@ -22,14 +21,8 @@ namespace Mango.Services.ProductAPI.Application__BLL_
     /// </summary>
     /// <param name="productForCreation">DTO модели для создания продукта</param>
     /// <returns>DTO модели продукта добавленного в БД</returns>
-    public async Task<ProductOutputDto?> CreateProductAsync(ProductForCreationDto productForCreation)
-    {
-      var newProduct = ProductMapper.ToEntityProduct(productForCreation);
-      newProduct?.ProductId = Guid.NewGuid();
-      var result = _context.Products.Add(newProduct!);
-      await _context.SaveChangesAsync();
-      return ProductMapper.ToProductOutputDto(result.Entity);
-    }
+    public async Task<ProductOutputDto?> CreateProductAsync(ProductForCreationDto productForCreation) => 
+      await _productRep.CreateProductAsync(productForCreation);
     
     /// <summary>
     /// Обновить информацию о продукте
@@ -39,10 +32,8 @@ namespace Mango.Services.ProductAPI.Application__BLL_
     /// <returns>DTO модели продукта обновленного в БД</returns>
     public async Task<ProductOutputDto?> UpdateProductAsync(Guid productId, ProductForUpdateDto product)
     {
-      var productInDb = await GetProductAndCheckIfExists(productId);
-      ProductMapper.UpdateEntity(product, productInDb);
-      await _context.SaveChangesAsync();
-      return await GetProductByIdAsync(productId);
+      await GetProductAndCheckIfExists(productId);
+      return await _productRep.UpdateProductAsync(productId, product);
     }
 
     /// <summary>
@@ -52,10 +43,8 @@ namespace Mango.Services.ProductAPI.Application__BLL_
     /// <returns></returns>
     public async Task<bool> DeleteProductByIdAsync(Guid productId)
     {
-      var productInDb = await GetProductAndCheckIfExists(productId);
-      _context.Products.Remove(productInDb!);
-      await _context.SaveChangesAsync();
-      return true;
+      await GetProductAndCheckIfExists(productId);
+      return await _productRep.DeleteProductAsync(productId);
     }
 
     /// <summary>
@@ -63,21 +52,15 @@ namespace Mango.Services.ProductAPI.Application__BLL_
     /// </summary>
     /// <param name="productId">Guid продукта</param>
     /// <returns>DTO модель ProductOutputDto</returns>
-    public async Task<ProductOutputDto?> GetProductByIdAsync(Guid productId)
-    {
-      var productInDb = await GetProductAndCheckIfExists(productId);
-      return ProductMapper.ToProductOutputDto(productInDb);
-    }
+    public async Task<ProductOutputDto?> GetProductByIdAsync(Guid productId) => 
+      await GetProductAndCheckIfExists(productId);
 
     /// <summary>
     /// Получить весь набор данных о продуктах из БД
     /// </summary>
     /// <returns></returns>
-    public async Task<IReadOnlyList<ProductOutputDto?>> GetProductsAsync()
-    {
-      var products = await _productRep.GetProductsAsync();
-      return products.Select(p => ProductMapper.ToProductOutputDto(p)).ToList() ?? [];
-    }
+    public async Task<IReadOnlyList<ProductOutputDto?>> GetProductsAsync() => 
+      await _productRep.GetProductsAsync();
 
     /// <summary>
     /// Проверка на наличие в БД Продукта по Guid эквивалентному переданному в качестве параметра и возврат его в виде результата
@@ -85,10 +68,7 @@ namespace Mango.Services.ProductAPI.Application__BLL_
     /// <param name="id">Guid продукта</param>
     /// <returns>Продукт</returns>
     /// <exception cref="ProductNotFoundException">Кастомное исключение в виде ответа в случае отсутствия продукта</exception>
-    private async Task<Data.Entities.Product?> GetProductAndCheckIfExists(Guid id)
-    {
-      var product = await _productRep.GetProductByIdAsync(id);
-      return product ?? throw new ProductNotFoundException(id);
-    }
+    private async Task<ProductOutputDto?> GetProductAndCheckIfExists(Guid id) => 
+      await _productRep.GetProductByIdAsync(id) ?? throw new ProductNotFoundException(id);
   }
 }

@@ -1,8 +1,6 @@
 ﻿using Mango.Services.ProductAPI.Data.Entities;
-using Mango.Services.ProductAPI.Shared.DTO;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace Mango.Services.ProductAPI.Application__BLL_.Mappers
+namespace Mango.Services.ProductAPI.Shared.DTO
 {
   public static class ProductMapper
   {
